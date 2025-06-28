@@ -247,11 +247,11 @@ def show_difficulty_menu():
                 sys.exit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_1:
-                    return 2
+                    return 1
                 elif event.key == pygame.K_2:
-                    return 4
+                    return 2
                 elif event.key == pygame.K_3:
-                    return 6
+                    return 4
 
 
 screen = pygame.display.set_mode(SIZE)
@@ -267,7 +267,7 @@ game_over = False
 turn = random.randint(PLAYER, AI)
 draw_board(board)
 
-while not game_over:
+while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
@@ -275,24 +275,27 @@ while not game_over:
         if event.type == pygame.MOUSEMOTION:
             pygame.draw.rect(screen, BLACK, (0, 0, WIDTH, SQUARESIZE))
             posx = event.pos[0]
-            pygame.draw.circle(screen, RED, (posx, int(SQUARESIZE / 2)), RADIUS)
+            if turn == PLAYER and not game_over:
+                pygame.draw.circle(screen, RED, (posx, int(SQUARESIZE / 2)), RADIUS)
             pygame.display.update()
 
-        if event.type == pygame.MOUSEBUTTONDOWN and turn == PLAYER:
-            posx = event.pos[0]
-            col = int(math.floor(posx / SQUARESIZE))
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if turn == PLAYER and not game_over:
+                posx = event.pos[0]
+                col = int(math.floor(posx / SQUARESIZE))
 
-            if is_valid_location(board, col):
-                row = get_next_open_row(board, col)
-                drop_piece(board, row, col, PLAYER_PIECE)
+                if is_valid_location(board, col):
+                    row = get_next_open_row(board, col)
+                    drop_piece(board, row, col, PLAYER_PIECE)
 
-                if winning_move(board, PLAYER_PIECE):
-                    label = FONT.render("Player wins!", 1, RED)
-                    screen.blit(label, (40, 10))
-                    game_over = True
+                    if winning_move(board, PLAYER_PIECE):
+                        pygame.draw.rect(screen, BLACK, (0, 0, WIDTH, SQUARESIZE))
+                        label = FONT.render("Player wins!", 1, RED)
+                        screen.blit(label, (40, 10))
+                        game_over = True
 
-                turn = AI
-                draw_board(board)
+                    turn = AI
+                    draw_board(board)
 
     if turn == AI and not game_over:
         col, minimax_score = minimax(board, difficulty, -math.inf, math.inf, True)
@@ -302,6 +305,7 @@ while not game_over:
             drop_piece(board, row, col, AI_PIECE)
 
             if winning_move(board, AI_PIECE):
+                pygame.draw.rect(screen, BLACK, (0, 0, WIDTH, SQUARESIZE))
                 label = FONT.render("AI wins!", 1, YELLOW)
                 screen.blit(label, (40, 10))
                 game_over = True
@@ -312,3 +316,4 @@ while not game_over:
     if game_over:
         pygame.display.update()
         pygame.time.wait(3000)
+        break  # Exit the loop after showing the result
